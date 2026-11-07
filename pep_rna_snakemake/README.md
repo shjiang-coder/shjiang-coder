@@ -1,6 +1,6 @@
 # 小肽 + 小RNA 一体化 Snakemake 自动化流程
 
-
+![Small peptide & small RNA identification workflow](./workflow.png)
 把之前散装的「小肽预测（getorf → CD-HIT → CSV）」和「小RNA 注释（cmscan → 8类 → 序列）」两套流程，合并为**一个 Snakemake 工作流**，一条命令跑完，直接输出 CSV 表格。
 
 ---
