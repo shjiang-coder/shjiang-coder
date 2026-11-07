@@ -1,0 +1,50 @@
+# ============================================================
+# 小肽 + 小RNA 一体化 Snakemake 流程
+#   用法:
+#     snakemake -n --cores 32            # 干跑（只预览，不执行）
+#     snakemake --cores 32               # 正式运行
+#     snakemake --cores 32 --use-conda   # 用 conda 自动装环境（推荐）
+#   文档: README.md
+# ============================================================
+import os
+
+configfile: "config/config.yaml"
+
+OUTDIR = config["outdir"]
+OUTPE  = os.path.join(OUTDIR, "peptide")
+OUTRN  = os.path.join(OUTDIR, "smallrna")
+
+PEP_EN   = config.get("peptide", {}).get("enabled", True)
+RNA_EN   = config.get("smallrna", {}).get("enabled", True)
+PEP      = config.get("peptide", {})
+RNA      = config.get("smallrna", {})
+SPECIES  = config["species"]
+RNA_TYPES = RNA.get("rna_types", ["tRNA","miRNA","rRNA","snoRNA","snRNA","SRP","ribozyme","other_ncRNA"])
+
+PEP_NC_EN = PEP.get("noncoding", {}).get("enabled", True)
+
+include: "workflows/rules/common.smk"
+include: "workflows/rules/peptide.smk"
+include: "workflows/rules/smallrna.smk"
+
+
+# ============================================================
+# 顶层目标
+# ============================================================
+rule all:
+    input:
+        (peptide_outputs() if PEP_EN else []) +
+        (smallrna_outputs() if RNA_EN else [])
+    run:
+        print("=" * 60)
+        print("✅ 流程全部完成")
+        print("=" * 60)
+        if PEP_EN:
+            print(f"\n【小肽结果】{OUTPE}")
+            print(f"  {OUTPE}/csv/                     各物种 CSV（含 NR100/NR90）")
+            print(f"  {OUTPE}/_peptide_summary_total.csv   汇总总表 ★")
+        if RNA_EN:
+            print(f"\n【小RNA结果】{OUTRN}")
+            print(f"  {OUTRN}/classify/                各物种 8 类分布")
+            print(f"  {OUTRN}/sequences/               各物种 8 类序列 ★")
+            print(f"  {OUTRN}/_rna_summary.csv         汇总总表 ★")

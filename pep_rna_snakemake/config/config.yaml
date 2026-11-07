@@ -1,0 +1,102 @@
+# ============================================================
+# 小肽 + 小RNA 一体化自动化流程 — 主配置文件
+# 所有需要您修改的内容都在这个文件里
+# ============================================================
+
+# ────────────────────────────────────────────────
+# 【1】输出根目录（所有结果都写到这里）
+# ────────────────────────────────────────────────
+outdir: /home/ug2451/shjiang/project/pep_rna_results
+
+
+# ────────────────────────────────────────────────
+# 【2】物种列表 ★最常改这里★
+#   键 = 中文名（用于输出文件名和 source 列）
+#   en = 英文名/缩写（用于中间文件命名）
+#   genome = 基因组 / CDS 序列的绝对路径（.fna / .fa / .fasta）
+#   想加物种就往下追加一段；不加的删掉或注释掉即可
+# ────────────────────────────────────────────────
+species:
+  佛手:
+    en: foshou
+    genome: /home/ug2451/shjiang/item/yanzhen_result/genome/foshou/GCA_002013955.2_C_medica_denovo_2_genomic.fna
+
+  昆明山海棠:
+    en: kunshanhaitang
+    genome: /home/ug2451/shjiang/item/yanzhen_result/genome/kunshanhaitang/GCF_013401445.1_ASM1340144v1_genomic.fna
+
+  萝卜:
+    en: laifuzi
+    genome: /home/ug2451/shjiang/item/yanzhen_result/genome/laifuzi/GCF_000801105.2_ASM80110v3_cds_from_genomic.fna
+
+
+# ────────────────────────────────────────────────
+# 【3】小肽模块
+# ────────────────────────────────────────────────
+peptide:
+  enabled: true              # false = 跳过整个小肽模块
+
+  length:
+    min_aa: 10               # 最短肽（氨基酸数）
+    max_aa: 100              # 最长肽
+
+  coding:                    # 编码区（ATG 起始 ORF）
+    enabled: true
+    method: getorf           # getorf | orfipy
+    find: 1                  # 1 = 仅 ATG 起始的 ORF
+
+  noncoding:                 # 非编码区（stop-to-stop ORF）
+    enabled: true
+    find: 0                  # 0 = 所有 stop-to-stop 区域
+
+  cdhit:
+    threads: 16
+    nr100:                   # 精确去冗余（完全相同序列合并）
+      c: 1.0
+      n: 5
+      s: 1.0
+      aL: 1.0
+      g: 1
+    nr90:                    # 90% 相似度聚类
+      c: 0.9
+      n: 5
+      s: 0.0
+      aL: 0.0
+      g: 1
+
+
+# ────────────────────────────────────────────────
+# 【4】小RNA模块
+# ────────────────────────────────────────────────
+smallrna:
+  enabled: true              # false = 跳过小RNA模块
+
+  rfam_cm: /home/ug2451/shjiang/item/rna_samll/HerbalRDB/database/rfam/Rfam.cm
+  rfam_lookup: /home/ug2451/shjiang/item/rna_samll/HerbalRDB/database/rfam/rfam_type_lookup.tsv
+
+  cmscan:
+    cpu: 16                  # 单物种线程数（注意与其他任务共享机器时调小）
+    rfam_mode: true          # --rfam  （目标为 Rfam 库时必须 true）
+    cut_ga: true             # --cut_ga（用 Rfam 官方 GA 阈值，推荐 true）
+    extra: ""                # 额外 cmscan 参数，如 "-E 1e-3"
+    max_parallel: 2          # 同时跑几个物种的 cmscan
+
+  # 输出 8 类（改这里的顺序不影响结果，但会改变汇总列顺序）
+  rna_types:
+    - tRNA
+    - miRNA
+    - rRNA
+    - snoRNA
+    - snRNA
+    - SRP
+    - ribozyme
+    - other_ncRNA
+
+  min_seq_len: 10            # 提取序列时最短长度（bp）
+
+
+# ────────────────────────────────────────────────
+# 【5】全局资源
+# ────────────────────────────────────────────────
+threads: 32                  # 流程全局默认线程（规则里会覆盖）
+keep_intermediate: true      # true = 保留中间文件（ORF fasta / cdhit 结果）便于排查

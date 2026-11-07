@@ -1,0 +1,7 @@
+name: peptide
+channels: [conda-forge, bioconda]
+dependencies:
+  - emboss=6.6.0        # getorf
+  - cd-hit=4.8.1
+  - python=3.10
+  - samtools=1.17

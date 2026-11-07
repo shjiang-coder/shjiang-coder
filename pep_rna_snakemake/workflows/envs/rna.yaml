@@ -1,0 +1,6 @@
+name: smallrna
+channels: [conda-forge, bioconda]
+dependencies:
+  - infernal=1.1.4      # cmscan
+  - samtools=1.17
+  - python=3.10
